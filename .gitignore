@@ -1,0 +1,9 @@
+*.o
+*.so
+phylib_wrap.c
+phylib.py
+__pycache__/
+*.svg
+display.html
+*.db
+A3GameInitTest.py
