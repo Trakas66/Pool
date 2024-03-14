@@ -1,0 +1,37 @@
+body{
+    background-color: lightblue;
+}
+
+br{
+    margin: 10px;
+}
+
+.center{
+    display: block;
+    margin: auto;
+    width: 50%;
+    text-align: center;
+}
+
+.screenCenter{
+    position: fixed;
+    display: flex;
+    margin: 15%;
+    width: 70%;
+    height: 50%;
+}
+
+.loadGame{
+    width: 50%;
+    text-align: center;
+}
+
+#svg-box{
+    img{
+        max-width: 50%;
+    }
+}
+
+.rotate90{
+    transform: rotate(90deg);
+}

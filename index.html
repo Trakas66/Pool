@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+
+    <head>
+
+        <title>Pool Game</title>
+        <link rel="stylesheet" type="text/css" href="game.css">
+
+    </head>
+
+    <body>
+
+        <div class="screenCenter">
+
+            <div class="loadGame">
+
+                <form action="game.html" method="post">
+
+                    <h3>Create Game</h3>
+                    <label for="gamename">Game Name:</label><br>
+                    <input type="text" id="gamename" name="gamename" size="30"><br>
+                    <label for="player1name">Player 1 Name:</label><br>
+                    <input type="text" id="player1name" name="player1name" size="30"><br>
+                    <label for="player2name">Player 2 Name:</label><br>
+                    <input type="text" id="player2name" name="player2name" size="30"><br>
+                    <h3><input type="submit" value="Create"></h3>
+                    <input type="hidden" id="new" name="new" value="True">
+
+                </form>
+
+            </div>
+            <div class="loadGame">
+
+                <form action="game.html" method="post">
+
+                    <h3>Load Game</h3>
+                    <label for="gameid">Game ID:</label><br>
+                    <input type="text" id="gameid" name="gameid" size="30"><br>
+                    <h3><input type="submit" value="Load"></h3>
+                    <input type="hidden" id="new" name="new" value="False">
+
+                </form>
+
+            </div>
+
+        </div>
+
+    </body>
+
+</html>

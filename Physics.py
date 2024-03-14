@@ -185,7 +185,7 @@ class HCushion( phylib.phylib_object ):
         if y < TABLE_WIDTH:
             y -= 25
         return """ <rect width="1400" height="25" x="-25" y="%d" fill="darkgreen" />\n""" \
-            % self.obj.hcushion.y
+            % y
 
 
 ################################################################################
@@ -214,7 +214,7 @@ class VCushion( phylib.phylib_object ):
     # add an svg method here
     def svg(self):
         x = self.obj.vcushion.x
-        if x < TABLE_LENGTH:
+        if x < TABLE_WIDTH:
             x -= 25
         return """ <rect width="25" height="2750" x="%d" y="-25" fill="darkgreen" />\n""" \
             % x
