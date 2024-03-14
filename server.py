@@ -47,6 +47,18 @@ class MyHandler( BaseHTTPRequestHandler ):
             self.wfile.write( bytes( content, "utf-8" ) )
             fp.close()
         
+        elif parsed.path in ['/game.js']:
+            fp = open('.'+self.path)
+            content = fp.read()
+
+            self.send_response(200)
+            self.send_header("Content-type", "text/javascript")
+            self.send_header("Content-length", len(content))
+            self.end_headers()
+
+            self.wfile.write(bytes(content, "utf-8"))
+            fp.close()
+        
         elif parsed.path in ['/table.svg']:
             fp = open('.'+self.path)
             content = fp.read()
@@ -73,6 +85,16 @@ class MyHandler( BaseHTTPRequestHandler ):
             content_length = int(self.headers["Content-Length"])
             post_data = self.rfile.read(content_length).decode("utf-8")
             form = dict(parse_qsl(post_data))
+
+            fp = open("game.html", "r")
+            content = fp.read()
+
+            self.send_response(200)
+            self.send_header("Content-type", "text/html")
+            self.send_header("Content-length", len(content))
+            self.end_headers()
+
+            self.wfile.write(bytes(content, "utf-8"))
         
         else:
             self.send_response(404)

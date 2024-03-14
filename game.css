@@ -9,8 +9,21 @@ br{
 .center{
     display: block;
     margin: auto;
-    width: 50%;
+    width: 60%;
     text-align: center;
+}
+
+#playerinfocontainer{
+    display: flex;
+    margin-right: 25%;
+    margin-left: 25%;
+    margin-top: 5%;
+}
+
+.playerinfo{
+    text-align: center;
+    width: 50%;
+    font-size: 3rem;
 }
 
 .screenCenter{
@@ -27,7 +40,7 @@ br{
 }
 
 #svg-box{
-    img{
+    svg{
         max-width: 50%;
     }
 }
