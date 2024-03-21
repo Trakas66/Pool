@@ -22,6 +22,8 @@ MAX_OBJECTS   = phylib.PHYLIB_MAX_OBJECTS
 
 FRAME_RATE    = 0.01
 
+SHOT_POWER    = 2.0
+
 # add more here
 
 HEADER = """<?xml version="1.0" encoding="UTF-8" standalone="no"?>
@@ -91,7 +93,12 @@ class StillBall( phylib.phylib_object ):
 
     # add an svg method here
     def svg(self):
-        return """ <circle cx="%d" cy="%d" r="%d" fill="%s" />\n""" \
+        if self.obj.still_ball.number == 0:
+            return """ <circle cx="%d" cy="%d" r="%d" fill="%s" id="cue-ball" />\n""" \
+            % (self.obj.still_ball.pos.x, self.obj.still_ball.pos.y, BALL_RADIUS, \
+            BALL_COLOURS[self.obj.still_ball.number])
+        else:
+            return """ <circle cx="%d" cy="%d" r="%d" fill="%s" />\n""" \
             % (self.obj.still_ball.pos.x, self.obj.still_ball.pos.y, BALL_RADIUS, \
             BALL_COLOURS[self.obj.still_ball.number])
 
@@ -419,7 +426,9 @@ class Database:
         cur.execute('''CREATE TABLE IF NOT EXISTS Game(
                     GAMEID INTEGER NOT NULL,
                     GAMENAME VARCHAR(64) NOT NULL,
-                    PRIMARY KEY (GAMEID)
+                    TABLEID INTEGER NOT NULL,
+                    PRIMARY KEY (GAMEID),
+                    FOREIGN KEY (TABLEID) REFERENCES TTable
                     );''')
         
         cur.execute('''CREATE TABLE IF NOT EXISTS Player(
@@ -497,7 +506,7 @@ class Database:
         self.conn.commit()
 
         return tableID - 1
-    
+
     def getGame(self, gameID):
         cur = self.conn.cursor()
 
@@ -510,17 +519,24 @@ class Database:
         player1Name = data[0][0]
         player2Name = data[1][0]
 
+        data = cur.execute(f'''SELECT TABLEID FROM Game
+                           WHERE GAMEID = {gameID}''').fetchone()
+        
+        tableID = data[0]
+
         cur.close()
         self.conn.commit()
 
-        return (gameName, player1Name, player2Name)
+        return (gameName, player1Name, player2Name, tableID)
 
-    def setGame(self, gameName, player1Name, player2Name):
+    def setGame(self, gameName, player1Name, player2Name, tableID):
 
         cur = self.conn.cursor()
 
-        cur.execute(f'''INSERT INTO Game(GAMENAME)
-                    VALUES ("{gameName}")''')
+        tableID += 1
+
+        cur.execute(f'''INSERT INTO Game(GAMENAME, TABLEID)
+                    VALUES ("{gameName}", {tableID})''')
         
         gameID = cur.execute('''SELECT last_insert_rowid() FROM Game''').fetchone()[0]
         
@@ -568,15 +584,18 @@ class Game:
 
         self.db = Database()
 
+        self.db.createDB()
+
         if gameID != None:
             if gameName or player1Name or player2Name:
                 raise TypeError("gameID was passed in with other parameters")
             
             self.gameID = gameID
-            gameName, player1Name, player2Name = self.db.getGame(self.gameID + 1)
+            gameName, player1Name, player2Name, tableID = self.db.getGame(self.gameID + 1)
             self.gameName = gameName
             self.player1Name = player1Name
             self.player2Name = player2Name
+            self.tableID = tableID
         
         elif gameName and player1Name and player2Name:
 
@@ -584,11 +603,16 @@ class Game:
             self.player1Name = player1Name
             self.player2Name = player2Name
 
-            self.gameID = self.db.setGame(self.gameName, self.player1Name, self.player2Name)
+            self.tableID = self.setupTable()
+
+            self.gameID = self.db.setGame(self.gameName, self.player1Name, self.player2Name, self.tableID)
         
         else:
             raise TypeError("Not enough arguments")
     
+    def setupTable(self):
+        return 0
+
     def shoot(self, gameName, playerName, table, xVel, yVel):
         shotID = self.db.newShot(playerName, self.gameID)
 
@@ -606,6 +630,10 @@ class Game:
                     newTable.time = oldTable.time + myTime
                     tableID = self.db.writeTable(newTable)
                     self.db.recordShot(tableID, shotID)
+        
+        self.tableID = tableID
+        
+        return shotID
 
 
     def __del__(self):

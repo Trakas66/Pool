@@ -86,8 +86,15 @@ class MyHandler( BaseHTTPRequestHandler ):
             post_data = self.rfile.read(content_length).decode("utf-8")
             form = dict(parse_qsl(post_data))
 
+            if form["new"] == "True":
+                game = Physics.Game(None, form["gamename"], form["player1name"], form["player2name"])
+            else:
+                game = Physics.Game(int(form["gameid"]))
+
             fp = open("game.html", "r")
             content = fp.read()
+
+            content = content.replace('data-id="0"', f'data-id="{game.gameID}"')
 
             self.send_response(200)
             self.send_header("Content-type", "text/html")
@@ -96,6 +103,32 @@ class MyHandler( BaseHTTPRequestHandler ):
 
             self.wfile.write(bytes(content, "utf-8"))
         
+        elif parsed.path in ['/shoot']:
+            content_length = int(self.headers["Content-Length"])
+            post_data = self.rfile.read(content_length).decode("utf-8")
+            form = dict(parse_qsl(post_data))
+
+            game = Physics.Game(int(form["gameid"]))
+
+            xVel = float(form["ballX"]) - float(form["x"]) * Physics.SHOT_POWER
+            yVel = float(form["ballY"]) - float(form["y"]) * Physics.SHOT_POWER
+
+            if sqrt(xVel**2 + yVel**2) > 4000:
+                total = abs(xVel) + abs(yVel)
+                mul = 4000/total
+                xVel = xVel/total * mul
+                yVel = yVel/total * mul
+            
+            shotID = game.shoot(game.gameName, game.player1Name, game.db.readTable(game.tableID), xVel, yVel)
+            content = str(shotID)
+
+            self.send_response(200)
+            self.send_header("Content-type", "text")
+            self.send_header("Content-length", len(content))
+            self.end_headers()
+
+            self.wfile.write(bytes(content, "utf-8"))
+
         else:
             self.send_response(404)
             self.end_headers()
