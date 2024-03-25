@@ -2,6 +2,7 @@ import phylib
 import os
 import sqlite3
 from math import sqrt, floor
+import CreateTable
 
 ################################################################################
 # import constants from phylib to global varaibles
@@ -22,7 +23,7 @@ MAX_OBJECTS   = phylib.PHYLIB_MAX_OBJECTS
 
 FRAME_RATE    = 0.01
 
-SHOT_POWER    = 2.0
+SHOT_POWER    = 5.0
 
 # add more here
 
@@ -32,7 +33,7 @@ HEADER = """<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <svg width="700" height="1375" viewBox="-25 -25 1400 2750"
 xmlns="http://www.w3.org/2000/svg"
 xmlns:xlink="http://www.w3.org/1999/xlink">
-<rect width="1350" height="2700" x="0" y="0" fill="#C0D0C0" />"""
+<rect width="1350" height="2700" x="0" y="0" fill="#C0D0C0" id="surface"/>"""
 
 FOOTER = """</svg>\n"""
 
@@ -522,7 +523,7 @@ class Database:
         data = cur.execute(f'''SELECT TABLEID FROM Game
                            WHERE GAMEID = {gameID}''').fetchone()
         
-        tableID = data[0]
+        tableID = int(data[0]) - 1
 
         cur.close()
         self.conn.commit()
@@ -611,9 +612,17 @@ class Game:
             raise TypeError("Not enough arguments")
     
     def setupTable(self):
-        return 0
+        table = CreateTable.CreateTable()
+
+        tableID = self.db.writeTable(table)
+
+        return tableID
 
     def shoot(self, gameName, playerName, table, xVel, yVel):
+
+        initTable = table
+        table.cueBall(xVel, yVel)
+
         shotID = self.db.newShot(playerName, self.gameID)
 
         table.cueBall(xVel, yVel)
@@ -635,6 +644,7 @@ class Game:
         
         return shotID
 
+    #def svg(self, )
 
     def __del__(self):
         self.db.close()

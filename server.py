@@ -113,9 +113,9 @@ class MyHandler( BaseHTTPRequestHandler ):
             xVel = float(form["ballX"]) - float(form["x"]) * Physics.SHOT_POWER
             yVel = float(form["ballY"]) - float(form["y"]) * Physics.SHOT_POWER
 
-            if sqrt(xVel**2 + yVel**2) > 4000:
+            if sqrt(xVel**2 + yVel**2) > 10000:
                 total = abs(xVel) + abs(yVel)
-                mul = 4000/total
+                mul = 10000/total
                 xVel = xVel/total * mul
                 yVel = yVel/total * mul
             

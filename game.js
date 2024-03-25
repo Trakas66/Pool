@@ -16,22 +16,27 @@ $(document).ready(
             cue.setAttributeNS(null, 'x2', x)
             cue.setAttributeNS(null, 'y2', y)
             cue.setAttributeNS(null, 'stroke', 'BLACK')
-            cue.setAttributeNS(null, 'stroke-width', 50)
+            cue.setAttributeNS(null, 'stroke-width', 10)
             cue.setAttributeNS(null, 'id', 'cue')
             return cue
         }
 
-        $("#svg-box").load("table.svg", function(){
-            $("#cue-ball").click(
-                function(){
-                    if(!draw){
-                        this.after(createCue())
-                        draw = true
+        loadSvg()
+
+        function loadSvg(){
+            $("#svg-box").load("table.svg", function(){
+                $("#cue-ball").click(
+                    function(){
+                        if(!draw){
+                            this.after(createCue())
+                            draw = true
+                        }
+                        
                     }
-                    
-                }
-            )
-        })
+                )
+            })
+        }
+        
 
         function onMouseMove(event){
             if(draw){
@@ -83,7 +88,7 @@ $(document).ready(
         }
 
         function showShot(data, status){
-            return
+            loadSvg()
         }
 
     }
