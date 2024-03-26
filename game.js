@@ -24,6 +24,7 @@ $(document).ready(
         loadSvg()
 
         function loadSvg(){
+
             $("#svg-box").load("table.svg", function(){
                 $("#cue-ball").click(
                     function(){
@@ -35,6 +36,7 @@ $(document).ready(
                     }
                 )
             })
+            
         }
         
 
@@ -85,10 +87,51 @@ $(document).ready(
                 y:y,
                 gameid:id
             }, showShot)
+
         }
 
         function showShot(data, status){
-            loadSvg()
+            animateShot()
+        }
+
+        function animateShot(){
+            let gameID = $("#svg-box").attr("data-id")
+            var start = Date.now()
+            var anim = true
+            function animateFrame(){
+                var delta = Date.now() - start
+                console.log("getting frame by post ")
+                $.post("table.svg",
+                {
+                    gameid:gameID,
+                    time:delta
+                }, function(data, status){
+                    console.log(data)
+                    if (status == "success"){
+                        var svgString = new XMLSerializer().serializeToString(data)
+                        $("#svg-box").html(svgString)
+                        console.log("frame")
+
+                        if (anim){
+                            animateFrame()
+                        }
+                    }else{
+                        anim = false
+                        console.log("404 " + time)
+                        $("#cue-ball").click(
+                            function(){
+                                if(!draw){
+                                    this.after(createCue())
+                                    draw = true
+                                }
+                                
+                            }
+                        )
+                    }
+                })
+            }
+            animateFrame()
+
         }
 
     }

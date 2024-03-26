@@ -12,6 +12,7 @@ from http.server import HTTPServer, BaseHTTPRequestHandler
 # used to parse the URL and extract form data for GET requests
 from urllib.parse import urlparse, parse_qsl
 
+lastShots = {}
 
 # handler for our web-server - handles both GET and POST requests
 class MyHandler( BaseHTTPRequestHandler ):
@@ -119,7 +120,14 @@ class MyHandler( BaseHTTPRequestHandler ):
                 xVel = xVel/total * mul
                 yVel = yVel/total * mul
             
-            shotID = game.shoot(game.gameName, game.player1Name, game.db.readTable(game.tableID), xVel, yVel)
+            lastShots[game.gameID] = []
+
+            for value in game.shoot(game.gameName, game.player1Name, game.db.readTable(game.tableID), xVel, yVel):
+                if isinstance(value, Physics.Table):
+                    lastShots[game.gameID].append(value)
+                else:
+                    shotID = value
+
             content = str(shotID)
 
             self.send_response(200)
@@ -128,6 +136,30 @@ class MyHandler( BaseHTTPRequestHandler ):
             self.end_headers()
 
             self.wfile.write(bytes(content, "utf-8"))
+        
+        elif parsed.path in ['/table.svg']:
+
+            content_length = int(self.headers["Content-Length"])
+            post_data = self.rfile.read(content_length).decode('utf-8')
+            form = dict(parse_qsl(post_data))
+
+            game = Physics.Game(int(form["gameid"]))
+            time = int(float(form["time"])/10)
+            print(time)
+
+            if time < len(lastShots[game.gameID]):
+                content = lastShots[game.gameID][time].svg()
+                
+                self.send_response(200)
+                self.send_header("Content-type", "text/svg+xml")
+                self.send_header("Content-length", len(content))
+                self.end_headers()
+
+                self.wfile.write(bytes(content, "utf-8"))
+
+
+            else:
+                self.send_response(404)
 
         else:
             self.send_response(404)

@@ -130,7 +130,12 @@ class RollingBall( phylib.phylib_object ):
 
     # add an svg method here
     def svg(self):
-        return """ <circle cx="%d" cy="%d" r="%d" fill="%s" />\n""" \
+        if self.obj.rolling_ball.number == 0:
+            return """ <circle cx="%d" cy="%d" r="%d" fill="%s" id="cue-ball"/>\n""" \
+            % (self.obj.rolling_ball.pos.x, self.obj.rolling_ball.pos.y, \
+            BALL_RADIUS, BALL_COLOURS[self.obj.rolling_ball.number])
+        else:
+            return """ <circle cx="%d" cy="%d" r="%d" fill="%s" />\n""" \
             % (self.obj.rolling_ball.pos.x, self.obj.rolling_ball.pos.y, \
             BALL_RADIUS, BALL_COLOURS[self.obj.rolling_ball.number])
 
@@ -587,6 +592,8 @@ class Game:
 
         self.db.createDB()
 
+        self.lastShot = []
+
         if gameID != None:
             if gameName or player1Name or player2Name:
                 raise TypeError("gameID was passed in with other parameters")
@@ -597,6 +604,8 @@ class Game:
             self.player1Name = player1Name
             self.player2Name = player2Name
             self.tableID = tableID
+            with open("table.svg", "w") as file:
+                file.write(self.db.readTable(self.tableID).svg())
         
         elif gameName and player1Name and player2Name:
 
@@ -608,6 +617,9 @@ class Game:
 
             self.gameID = self.db.setGame(self.gameName, self.player1Name, self.player2Name, self.tableID)
         
+            with open("table.svg", "w") as file:
+                file.write(self.db.readTable(self.tableID).svg())
+
         else:
             raise TypeError("Not enough arguments")
     
@@ -623,7 +635,23 @@ class Game:
         initTable = table
         table.cueBall(xVel, yVel)
 
-        shotID = self.db.newShot(playerName, self.gameID)
+        while table:
+            oldTable = table
+            table = table.segment()
+            if table:
+                totalTime = table.time - oldTable.time
+                frames = floor(totalTime / FRAME_RATE)
+                for i in range(frames):
+                    myTime = i * FRAME_RATE
+                    newTable = oldTable.roll(myTime)
+                    newTable.time = oldTable.time + myTime
+                    yield newTable
+        
+        table = initTable
+
+        yield 0
+
+        """ shotID = self.db.newShot(playerName, self.gameID)
 
         table.cueBall(xVel, yVel)
 
@@ -642,7 +670,7 @@ class Game:
         
         self.tableID = tableID
         
-        return shotID
+        yield shotID """
 
     #def svg(self, )
 
