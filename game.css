@@ -41,8 +41,9 @@ br{
 
 #svg-box{
     svg{
-        max-width: 50%;
-        max-height: fit-content;
+        width: 700px;
+        max-height: 1400px;
+        transform: scale(0.5);
     }
 }
 

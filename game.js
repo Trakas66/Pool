@@ -42,8 +42,8 @@ $(document).ready(
 
         function onMouseMove(event){
             if(draw){
-                let ballX = $("#cue-ball").attr('cx')
-                let ballY = $("#cue-ball").attr('cy')
+                let ballX = parseFloat($("#cue-ball").attr('cx'))
+                let ballY = parseFloat($("#cue-ball").attr('cy'))
 
                 let bpageX = $("#cue-ball").offset().left
                 let bpageY = $("#cue-ball").offset().top
@@ -51,8 +51,15 @@ $(document).ready(
                 let spageX = $("#surface").offset().left
 
                 var ratio = ballX / (bpageX - spageX)
-                var x = (event.pageX - bpageX) * ratio + +ballX
-                var y = (event.pageY - bpageY) * ratio + +ballY
+                var x = (event.pageX - bpageX) * ratio + ballX
+                var y = (event.pageY - bpageY) * ratio + ballY
+                
+                var length = Math.sqrt((x-ballX)*(x-ballX) + (y-ballY)*(y-ballY))
+                if(length > 500){
+                    var r = 500/length
+                    x = ballX + (x- ballX) * r
+                    y = ballY + (y-ballY) * r
+                }
 
                 $("#cue").attr("x2", x)
                 $("#cue").attr("y2", y)
@@ -91,33 +98,15 @@ $(document).ready(
         }
 
         function showShot(data, status){
-            animateShot()
-        }
+            var tables = data.split(":,:")
+            tables.forEach(function(item, index){
+                setTimeout(function(){
+                    displayFrame(item)
 
-        function animateShot(){
-            let gameID = $("#svg-box").attr("data-id")
-            var start = Date.now()
-            var anim = true
-            function animateFrame(){
-                var delta = Date.now() - start
-                console.log("getting frame by post ")
-                $.post("table.svg",
-                {
-                    gameid:gameID,
-                    time:delta
-                }, function(data, status){
-                    console.log(data)
-                    if (status == "success"){
-                        var svgString = new XMLSerializer().serializeToString(data)
-                        $("#svg-box").html(svgString)
-                        console.log("frame")
-
-                        if (anim){
-                            animateFrame()
+                    if(index+1 == tables.length){
+                        if($("#cue-ball").length == 0){
+                            console.log("Cue ball pocketed")
                         }
-                    }else{
-                        anim = false
-                        console.log("404 " + time)
                         $("#cue-ball").click(
                             function(){
                                 if(!draw){
@@ -128,10 +117,14 @@ $(document).ready(
                             }
                         )
                     }
-                })
-            }
-            animateFrame()
 
+                }, 10 * (index + 1))
+            })
+
+        }
+
+        function displayFrame(frame){
+            $("#svg-box").html(frame)
         }
 
     }

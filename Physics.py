@@ -23,7 +23,8 @@ MAX_OBJECTS   = phylib.PHYLIB_MAX_OBJECTS
 
 FRAME_RATE    = 0.01
 
-SHOT_POWER    = 5.0
+SHOT_POWER    = 20.0
+MAX_SPEED     = 10000.0
 
 # add more here
 
@@ -347,8 +348,8 @@ class Table( phylib.phylib_table ):
                     obj.obj.rolling_ball.vel.x = xVel
                     obj.obj.rolling_ball.vel.y = yVel
                     speed = sqrt(xVel**2 + yVel**2)
-                    xAcc = xVel/speed * DRAG
-                    yAcc = yVel/speed * DRAG
+                    xAcc = xVel/speed * DRAG * (-1)
+                    yAcc = yVel/speed * DRAG * (-1)
                     obj.obj.rolling_ball.acc.x = xAcc
                     obj.obj.rolling_ball.acc.y = yAcc
                     return
@@ -519,7 +520,8 @@ class Database:
         data = cur.execute(f'''SELECT PLAYERNAME, GAMENAME FROM
                     (Game INNER JOIN Player ON
                     Game.GAMEID = Player.GAMEID)
-                    WHERE Game.GAMEID = {gameID}''').fetchall()
+                    WHERE Game.GAMEID = {gameID}
+                    ORDER BY Player.PLAYERID''').fetchall()
         
         gameName = data[0][1]
         player1Name = data[0][0]
@@ -580,6 +582,18 @@ class Database:
         
         cur.close()
         self.conn.commit()
+    
+    def setTable(self, gameID, tableID):
+        gameID += 1
+        tableID += 1
+        cur = self.conn.cursor()
+        
+        cur.execute(f'''UPDATE Game
+                    SET TABLEID = {tableID}
+                    WHERE GAMEID = {gameID}''')
+        
+        cur.close()
+        self.conn.commit()
 
     def close(self):
         self.conn.commit()
@@ -632,7 +646,7 @@ class Game:
 
     def shoot(self, gameName, playerName, table, xVel, yVel):
 
-        initTable = table
+        shot = []
         table.cueBall(xVel, yVel)
 
         while table:
@@ -645,11 +659,14 @@ class Game:
                     myTime = i * FRAME_RATE
                     newTable = oldTable.roll(myTime)
                     newTable.time = oldTable.time + myTime
-                    yield newTable
-        
-        table = initTable
+                    shot.append(newTable)
+        shot.append(oldTable)
 
-        yield 0
+        tableID = self.db.writeTable(oldTable)
+
+        self.db.setTable(self.gameID, tableID)
+
+        return shot
 
         """ shotID = self.db.newShot(playerName, self.gameID)
 
