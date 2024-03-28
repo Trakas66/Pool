@@ -23,7 +23,7 @@ MAX_OBJECTS   = phylib.PHYLIB_MAX_OBJECTS
 
 FRAME_RATE    = 0.01
 
-SHOT_POWER    = 20.0
+SHOT_POWER    = 8.0
 MAX_SPEED     = 10000.0
 
 # add more here
@@ -53,13 +53,13 @@ BALL_COLOURS = [
     "GREEN",
     "BROWN",
     "BLACK",
-    "LIGHTYELLOW",
-    "LIGHTBLUE",
-    "PINK",             # no LIGHTRED
-    "MEDIUMPURPLE",     # no LIGHTPURPLE
-    "LIGHTSALMON",      # no LIGHTORANGE
-    "LIGHTGREEN",
-    "SANDYBROWN",       # no LIGHTBROWN 
+    "YELLOW",
+    "BLUE",
+    "RED",
+    "PURPLE",
+    "ORANGE",
+    "GREEN",
+    "BROWN",
     ]
 
 ################################################################################
@@ -95,14 +95,23 @@ class StillBall( phylib.phylib_object ):
 
     # add an svg method here
     def svg(self):
-        if self.obj.still_ball.number == 0:
-            return """ <circle cx="%d" cy="%d" r="%d" fill="%s" id="cue-ball" />\n""" \
-            % (self.obj.still_ball.pos.x, self.obj.still_ball.pos.y, BALL_RADIUS, \
-            BALL_COLOURS[self.obj.still_ball.number])
+        num = self.obj.still_ball.number
+        x = self.obj.still_ball.pos.x
+        y = self.obj.still_ball.pos.y
+        colour = BALL_COLOURS[num]
+        if num == 0:
+            return """ <circle cx="%d" cy="%d" r="%.1lf" fill="%s" id="cue-ball" />\n""" \
+            % (x, y, BALL_RADIUS, colour)
+        elif num > 8:
+            return f""" <circle cx="{x}" cy="{y}" r="{BALL_RADIUS}" fill="{colour}" />\n
+            <circle cx="{x}" cy="{y}" r="{BALL_RADIUS-7}" fill="BLACK" />\n
+            <circle cx="{x}" cy="{y}" r="{BALL_RADIUS-7.5}" fill="WHITE" />\n
+            <circle cx="{x}" cy="{y}" r="{BALL_RADIUS-13}" fill="BLACK" />\n
+            <circle cx="{x}" cy="{y}" r="{BALL_RADIUS-13.5}" fill="{colour}" />\n"""
+
         else:
-            return """ <circle cx="%d" cy="%d" r="%d" fill="%s" />\n""" \
-            % (self.obj.still_ball.pos.x, self.obj.still_ball.pos.y, BALL_RADIUS, \
-            BALL_COLOURS[self.obj.still_ball.number])
+            return """ <circle cx="%d" cy="%d" r="%.1lf" fill="%s" />\n""" \
+            % (x, y, BALL_RADIUS, colour)
 
 
 ################################################################################
@@ -131,14 +140,23 @@ class RollingBall( phylib.phylib_object ):
 
     # add an svg method here
     def svg(self):
-        if self.obj.rolling_ball.number == 0:
-            return """ <circle cx="%d" cy="%d" r="%d" fill="%s" id="cue-ball"/>\n""" \
-            % (self.obj.rolling_ball.pos.x, self.obj.rolling_ball.pos.y, \
-            BALL_RADIUS, BALL_COLOURS[self.obj.rolling_ball.number])
+        num = self.obj.rolling_ball.number
+        x = self.obj.rolling_ball.pos.x
+        y = self.obj.rolling_ball.pos.y
+        colour = BALL_COLOURS[num]
+        if num == 0:
+            return """ <circle cx="%d" cy="%d" r="%.1lf" fill="%s" id="cue-ball" />\n""" \
+            % (x, y, BALL_RADIUS, colour)
+        elif num > 8:
+            return f""" <circle cx="{x}" cy="{y}" r="{BALL_RADIUS}" fill="{colour}" />\n
+            <circle cx="{x}" cy="{y}" r="{BALL_RADIUS-7}" fill="BLACK" />\n
+            <circle cx="{x}" cy="{y}" r="{BALL_RADIUS-7.5}" fill="WHITE" />\n
+            <circle cx="{x}" cy="{y}" r="{BALL_RADIUS-13}" fill="BLACK" />\n
+            <circle cx="{x}" cy="{y}" r="{BALL_RADIUS-13.5}" fill="{colour}" />\n"""
+
         else:
-            return """ <circle cx="%d" cy="%d" r="%d" fill="%s" />\n""" \
-            % (self.obj.rolling_ball.pos.x, self.obj.rolling_ball.pos.y, \
-            BALL_RADIUS, BALL_COLOURS[self.obj.rolling_ball.number])
+            return """ <circle cx="%d" cy="%d" r="%.1lf" fill="%s" />\n""" \
+            % (x, y, BALL_RADIUS, colour)
 
 
 ################################################################################
@@ -668,28 +686,12 @@ class Game:
 
         return shot
 
-        """ shotID = self.db.newShot(playerName, self.gameID)
-
-        table.cueBall(xVel, yVel)
-
-        while table:
-            oldTable = table
-            table = table.segment()
-            if table:
-                totalTime = table.time - oldTable.time
-                frames = floor(totalTime / FRAME_RATE)
-                for i in range(frames):
-                    myTime = i * FRAME_RATE
-                    newTable = oldTable.roll(myTime)
-                    newTable.time = oldTable.time + myTime
-                    tableID = self.db.writeTable(newTable)
-                    self.db.recordShot(tableID, shotID)
-        
-        self.tableID = tableID
-        
-        yield shotID """
-
-    #def svg(self, )
+    def placeCue(self, table):
+        pos = Coordinate(TABLE_WIDTH/2, TABLE_LENGTH*0.75)
+        ball = StillBall(0, pos)
+        table += ball
+        tableID = self.db.writeTable(table)
+        self.db.setTable(self.gameID, tableID)
 
     def __del__(self):
         self.db.close()

@@ -94,6 +94,8 @@ class MyHandler( BaseHTTPRequestHandler ):
             content = fp.read()
 
             content = content.replace('data-id="0"', f'data-id="{game.gameID}"')
+            content = content.replace('data-name="1"', f'data-name="{game.player1Name}"')
+            content = content.replace('data-name="2"', f'data-name="{game.player2Name}"')
 
             self.send_response(200)
             self.send_header("Content-type", "text/html")
@@ -119,6 +121,26 @@ class MyHandler( BaseHTTPRequestHandler ):
                 lastShots[i] = svgString
 
             content = ":,:".join(lastShots)
+
+            self.send_response(200)
+            self.send_header("Content-type", "text")
+            self.send_header("Content-length", len(content))
+            self.end_headers()
+
+            self.wfile.write(bytes(content, "utf-8"))
+        
+        elif parsed.path in ['/placecue']:
+            content_length = int(self.headers["Content-Length"])
+            post_data = self.rfile.read(content_length).decode("utf-8")
+            form = dict(parse_qsl(post_data))
+
+            game = Physics.Game(int(form["gameid"]))
+
+            table = game.db.readTable(game.tableID)
+
+            game.placeCue(table)
+
+            content = table.svg()
 
             self.send_response(200)
             self.send_header("Content-type", "text")
