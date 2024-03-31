@@ -6,6 +6,7 @@ $(document).ready(
 
         let draw = false
         let drawStop = false
+        var gameOver = false
         var balls = []
         let colours = ["YELLOW", "BLUE", "RED", "PURPLE", "ORANGE", "GREEN", "BROWN"]
         var ball8 = 1
@@ -143,7 +144,7 @@ $(document).ready(
         function setCueBall(){
             $("#cue-ball").click(
                 function(){
-                    if(!draw){
+                    if(!draw && !gameOver){
                         this.after(createCue())
                         draw = true
                     }
@@ -196,18 +197,26 @@ $(document).ready(
             if(ball8 == 0){
                 //game is over
                 if(turnBalls == 0){
-                    console.log("Game lost")
+                    changeTurn()
+                    setTimeout(endGame, 50)
+                    return
                 }else if(turnBalls == 1){
                     if(numSolids == 0 && solids == 0){
-                        console.log("Game won by solids")
+                        endGame()
+                        return
                     }else{
-                        console.log("Game lost by solids")
+                        changeTurn()
+                        setTimeout(endGame, 50)
+                        return
                     }
                 }else{
                     if(numStripes == 0 && stripes == 0){
-                        console.log("Game won by stripes")
+                        endGame()
+                        return
                     }else{
-                        console.log("Game lost by stripes")
+                        changeTurn()
+                        setTimeout(endGame, 50)
+                        return
                     }
                 }
             }
@@ -263,6 +272,13 @@ $(document).ready(
             console.log("P1Balls: " + p1Balls + "\nP2Balls: " + p2Balls)
         }
 
+        function endGame(){
+            gameOver = true
+            turn += 2
+            turnBalls = 0
+            showTurn()
+        }
+
         function changeTurn(){
             if(turn == 1){
                 turn = 2
@@ -283,14 +299,20 @@ $(document).ready(
 
             if(turn == 1){
                 $("#turncontainer h3").text(p1name + "'s turn")
-            }else{
+            }else if(turn == 2){
                 $("#turncontainer h3").text(p2name + "'s turn")
+            }else if(turn == 3){
+                $("#turncontainer h3").text(p1name + " wins!")
+            }else{
+                $("#turncontainer h3").text(p2name + " wins!")
             }
 
             if(turnBalls == 1){
                 $("#turncontainer p").text("Solids")
             }else if(turnBalls == 2){
                 $("#turncontainer p").text("Stripes")
+            }else{
+                $("#turncontainer p").text("")
             }
 
         }
